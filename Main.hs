@@ -16,10 +16,13 @@ data Object = Sphere {position :: Vector, radius :: Double, material :: Material
 
 
 rays :: Camera -> [Ray]
-rays camera = [Ray (Vector [0, 0, 0]) (subtract (Vector [0, 0, 0]) (start x y)) | y <- [1..(height camera)], x <- [1..(width camera)]]
-    where start = 
+rays (Camera w h f) = [Ray (Vector [0, 0, 0]) $ normalize (subtract (Vector [0, 0, 0]) (start x y)) | y <- [1..h], x <- [1..w]]
+    where start x y = Vector [x / w, y / h, f]
 
-trace :: [Ray] -> [Light] -> [Object] -> [Color]
+--trace :: [Ray] -> [Light] -> [Object] -> [Color]
 
 
-intersect :: Object -> Ray -> Vector
+intersect :: Object -> Ray -> Maybe Double
+intersect (Sphere position radius _) (Ray origin direction) = 
+
+--flatten
