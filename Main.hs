@@ -17,7 +17,7 @@ data Object = Sphere {position :: Vector, radius :: Double, material :: Material
 
 rays :: Camera -> [Ray]
 rays (Camera w h f) = [Ray (Vector [0, 0, 0]) $ normalize (subtract (Vector [0, 0, 0]) (start x y)) | y <- [1..h], x <- [1..w]]
-    where start x y = Vector [x / w, y / h, f]
+    where start x y = Vector [2 * x / w - 1, 2 * y / h - 1, f]
 
 --trace :: [Ray] -> [Light] -> [Object] -> [Color]
 
