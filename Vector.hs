@@ -16,8 +16,14 @@ sumvector (Vector xs) = sum xs
 dotproduct :: Vector -> Vector -> Double
 dotproduct x y = sumvector (multiplyvector x y)
 
-vectorlength :: Vector -> Double
-vectorlength a = sqrt (dotproduct a a)
+magnitude :: Vector -> Double
+magnitude x = sqrt (dotproduct x x)
 
 normalize :: Vector -> Vector
-normalize x@(Vector xs) = Vector (map (/ vectorlength x) xs)
+normalize x@(Vector xs) = Vector (map (/ magnitude x) xs)
+
+crossproduct (Vector xs) (Vector ys) = let a = xs!!1 * ys!!2 - xs!!2 * ys!!1
+                                           b = xs!!2 * ys!!0 - xs!!0 * ys!!2
+                                           c = xs!!0 * ys!!1 - xs!!1 * ys!!0
+                                       in Vector [a, b, c]
+                                       
