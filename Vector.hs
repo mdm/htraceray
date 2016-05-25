@@ -1,7 +1,6 @@
 module Vector where
 
-data Vector = Vector [Double] deriving Show
-
+data Vector = Vector {elements :: [Double]} deriving Show
 
 add (Vector xs) (Vector ys) = Vector (zipWith (+) xs ys)
     
