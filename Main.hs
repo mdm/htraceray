@@ -1,29 +1,16 @@
+import Ray
+import Object
 import Vector
-import Matrix
+import Util
+import Image
 
-data Camera = Camera {width :: Int, height :: Int, f :: Double}
+camera = Camera 600 600 1
 
-data Ray = Ray {origin :: Vector, direction :: Vector}
+intersections = map (intersect $ Sphere (Vector [0, 0, -10]) 5) (rays camera)
 
-data Color = Color {red :: Double, green :: Double, blue :: Double}
+color (Just _) = Color 1 0 0
+color Nothing  = Color 1 1 1
 
-data Light = Light {lightPosition :: Vector, lightColor :: Color}
+colors = map color intersections
 
-data Material = Material {color :: Color}
-
-data Object = Sphere {position :: Vector, radius :: Double, material :: Material}
-              | Plane {point :: Vector, normal :: Vector, material :: Material}
-
-
-rays :: Camera -> [Ray]
-rays (Camera w h f) = [Ray (Vector [0, 0, 0]) $ normalize (Vector.subtract (Vector [0, 0, 0]) (start x y)) | y <- [1..h], x <- [1..w]]
-    where start x y = Vector [2 * x / w - 1, 2 * y / h - 1, f]
-
---trace :: [Ray] -> [Light] -> [Object] -> [Color]
-
-
---intersect :: Object -> Ray -> Maybe Double
---intersect (Sphere position radius _) (Ray origin direction) = 
-
---flatten
-
+main = save "output.png" camera colors
