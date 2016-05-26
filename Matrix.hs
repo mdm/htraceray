@@ -6,6 +6,7 @@ data Matrix = Matrix {rows :: [Vector]} deriving Show
 
 multiplyvector matrix vector = Vector $ map (Vector.dotproduct vector) (rows matrix)
 
-transpose matrix = Matrix [Vector $ map (!!x) (map elements (rows matrix)) | x <- [0..(length (elements (head (rows matrix)))) - 1]]
+transpose (Matrix ((Vector []):_)) = Matrix []
+transpose matrix = Matrix $ (Vector $ map (head . elements) (rows matrix)) : (rows $ transpose (Matrix $ map (Vector . tail . elements) (rows matrix)))
 
 multiplymatrix lhs rhs = Matrix $ map (Matrix.multiplyvector lhs) (rows (transpose rhs))
