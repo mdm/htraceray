@@ -1,0 +1,10 @@
+- multiple objects
+- materials
+- blinn-phong shading
+- shadow rays
+- reflection
+- refraction
+- triangle intersecton
+- mesh intersection
+- multisampling
+
