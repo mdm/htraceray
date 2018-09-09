@@ -5,9 +5,9 @@ import Util
 import Image
 import Light
 
-camera = Camera 800 800 (sqrt 8)
+camera = Camera 800 600 (sqrt 8)
 
-world = [Sphere (Vector [-3, 3, -15]) 1, Sphere (Vector [0, 0, -20]) 5]
+world = [Sphere (Vector [0, 0, -1]) 0.5]
 
 objectIntersections object = map (intersect object) (rays camera)
 
@@ -20,4 +20,13 @@ closestIntersections (x:xs) = map min' (zip x (closestIntersections xs))
 
 colors = map (shade $ Point (Vector [-100, 100, 100]) (Vector [1, 1, 1])) (closestIntersections (map objectIntersections world))
 
-main = save "output.png" camera colors
+dummyColors = map dummyShade $ objectIntersections $ head world
+    where dummyShade Nothing = Vector [1, 1, 1]
+          dummyShade (Just _) = Vector [1, 0, 0]
+
+main = do 
+         save "output.png" camera colors
+      --    putStrLn $ show $ rays camera
+      --    putStrLn $ show $ objectIntersections $ head world
+      --    putStrLn $ show $ intersect (head world) (Ray (Vector [0, 0, 0]) (Vector [-1, 1, -1]))
+      --    putStrLn $ show $ intersect (head world) (Ray (Vector [0, 0, 0]) (Vector [0, 0, -1]))
