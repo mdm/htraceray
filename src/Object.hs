@@ -24,15 +24,22 @@ data Object = Sphere {center :: Vector, radius :: Double} |
 --                                          q = sqrt (r2 - m2)
 
 intersect (Sphere center radius) (Ray origin direction) | discriminant < 0 = Nothing
-                                                        | otherwise = Just $ let t = (-b - (sqrt discriminant)) / (2 * a)
-                                                                                 i = multiplyscalar t direction
+                                                        | t < 0 = Nothing
+                                                        | otherwise = Just $ let i = multiplyscalar t direction
                                                                              in Intersection t i (normalize (Vector.subtract i center))
                                                           where oc = Vector.subtract origin center
                                                                 a = dotproduct direction direction
                                                                 b = 2 * (dotproduct oc direction)
                                                                 c = (dotproduct oc oc) - (radius * radius)
                                                                 discriminant = (b * b) - (4 * a * c)
+                                                                t = (-b - (sqrt discriminant)) / (2 * a)
 
-intersect (Plane p n) (Ray o d) = undefined
+intersect (Plane p n) (Ray o d) = Nothing
 
-intersect (SimpleScene xs) (Ray o d) = undefined
+intersect (SimpleScene objects) ray = closest (map ((flip intersect) ray) objects)
+                                      where closest [x] = x
+                                            closest (x:xs) = min' x (closest xs)
+                                            min' Nothing Nothing = Nothing
+                                            min' a Nothing = a
+                                            min' Nothing b = b
+                                            min' (Just a) (Just b) = Just (min a b)
