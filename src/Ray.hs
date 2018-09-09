@@ -1,6 +1,6 @@
 module Ray where
 
-import System.Random
+import System.Random.Mersenne
 
 import Vector
 import Util
