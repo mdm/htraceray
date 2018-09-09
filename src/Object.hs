@@ -2,11 +2,12 @@ module Object where
 
 import Vector
 import Ray
+import Material
 import Util
 
-data Object = Sphere {center :: Vector, radius :: Double} |
-              Plane {point :: Vector, normal :: Vector} |
-              SimpleScene {objects :: [Object]}
+data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Material) } |
+              Plane { point :: Vector, normal :: Vector } |
+              SimpleScene { objects :: [Object] }
               
 -- intersect (Sphere c r) (Ray o d) | s < 0 && l2 > r2 = Nothing
 --                                  | m2 > r2          = Nothing
@@ -23,16 +24,17 @@ data Object = Sphere {center :: Vector, radius :: Double} |
 --                                          m2 = l2 - s * s
 --                                          q = sqrt (r2 - m2)
 
-intersect (Sphere center radius) (Ray origin direction) | discriminant < 0 = Nothing
-                                                        | t < 0 = Nothing
-                                                        | otherwise = Just $ let i = multiplyscalar t direction
-                                                                             in Intersection t i (normalize (Vector.subtract i center))
-                                                          where oc = Vector.subtract origin center
-                                                                a = dotproduct direction direction
-                                                                b = 2 * (dotproduct oc direction)
-                                                                c = (dotproduct oc oc) - (radius * radius)
-                                                                discriminant = (b * b) - (4 * a * c)
-                                                                t = (-b - (sqrt discriminant)) / (2 * a)
+intersect (Sphere center radius material) (Ray origin direction) | discriminant < 0 = Nothing
+                                                                 | t < 0.001 = Nothing
+                                                                 | otherwise = Just $ let i = multiplyscalar t direction
+                                                                                          n = normalize (Vector.subtract i center)
+                                                                                      in Intersection t (material i n)
+                                                                 where oc = Vector.subtract origin center
+                                                                       a = dotproduct direction direction
+                                                                       b = 2 * (dotproduct oc direction)
+                                                                       c = (dotproduct oc oc) - (radius * radius)
+                                                                       discriminant = (b * b) - (4 * a * c)
+                                                                       t = (-b - (sqrt discriminant)) / (2 * a)
 
 intersect (Plane p n) (Ray o d) = Nothing
 
