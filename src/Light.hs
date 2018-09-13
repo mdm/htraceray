@@ -8,21 +8,31 @@ import Material
 
 data Light = Point { origin :: Vector, color :: Vector }
 
+fromIntersection :: Maybe Intersection -> Maybe Material
 fromIntersection Nothing = Nothing
-fromIntersection (Just (Intersection t material)) = Just material
+fromIntersection (Just (Intersection _ material')) = Just material'
 
-colors :: Object -> IO [Ray] -> Int -> IO [Vector]
-colors object rays samples = do
-                                 r <- rays
-                                 shaded <- mapM (shade object []) (map (fromIntersection . intersect object) r)
-                                 return $ average samples $ shaded
+shadeChunked :: Int -> Object -> [Ray] -> [Double] -> [Vector]
+shadeChunked _ _ [] _ = []
+shadeChunked samples object rays randoms = (average shaded):(shadeChunked samples object rest randoms')
+      where (chunk, rest) = splitAt samples rays
+            (shaded, randoms') = shadeAll object chunk randoms
 
-shade :: Object -> [Light] -> Maybe Material -> IO Vector
-shade _ _ Nothing = return $ Vector [1, 1, 1]
-shade object _ (Just (Diffuse i n)) = do
-                                          color <- colors object (sequence [reflected]) 1
-                                          return $ multiplyscalar 0.5 (head color)
+shadeAll :: Object -> [Ray] -> [Double] -> ([Vector], [Double])
+shadeAll object (ray:[]) randoms = ([shaded], randoms')
+      where (shaded, randoms') = shadeSingle object ray randoms
+shadeAll object (ray:rays) randoms = (shaded:rest, randoms'')
+      where (shaded, randoms') = shadeSingle object ray randoms
+            (rest, randoms'') = shadeAll object rays randoms'
+
+shadeSingle :: Object -> Ray -> [Double] -> (Vector, [Double])
+shadeSingle object ray randoms = (shaded, randoms')
+      where (shaded, randoms') = shade object (fromIntersection $ intersect object ray) randoms
+
+shade :: Object -> Maybe Material -> [Double] -> (Vector, [Double])
+shade _ Nothing randoms = (Vector [1, 1, 1], randoms)
+shade object (Just (Diffuse i n)) randoms = (multiplyscalar 0.5 shaded, randoms'')
     where target v = Vector.add (Vector.add i n) v
-          reflected = do 
-                         v <- randomInUnitSphere
-                         return $ Ray i (Vector.subtract (target v) i)
+          (v, randoms') = randomInUnitSphere randoms
+          reflected = Ray i (Vector.subtract (target v) i)
+          (shaded, randoms'') = shadeSingle object reflected randoms'
