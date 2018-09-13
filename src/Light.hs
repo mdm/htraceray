@@ -8,8 +8,9 @@ import Material
 
 data Light = Point { origin :: Vector, color :: Vector }
 
+fromIntersection :: Maybe Intersection -> Maybe Material
 fromIntersection Nothing = Nothing
-fromIntersection (Just (Intersection t material)) = Just material
+fromIntersection (Just (Intersection _ material')) = Just material'
 
 shadeChunked :: Int -> Object -> [Ray] -> [Double] -> [Vector]
 shadeChunked _ _ [] _ = []
@@ -17,17 +18,19 @@ shadeChunked samples object rays randoms = (average shaded):(shadeChunked sample
       where (chunk, rest) = splitAt samples rays
             (shaded, randoms') = shadeAll object chunk randoms
 
-shadeAll :: Object -> [Ray] -> [Double] -> [Vector]
-shadeAll object (ray:rays) randoms = shaded:(shadeAll object rays randoms')
+shadeAll :: Object -> [Ray] -> [Double] -> ([Vector], [Double])
+shadeAll object (ray:rays) randoms = (shaded:rest, randoms'')
       where (shaded, randoms') = shadeSingle object ray randoms
+            (rest, randoms'') = shadeAll object rays randoms'
 
-      (map (fromIntersection . intersect object)
-shadeSingle :: Object -> Ray -> [Double] -> Vector
-shadeSingle _ _ Nothing = Vector [1, 1, 1]
+shadeSingle :: Object -> Ray -> [Double] -> (Vector, [Double])
+shadeSingle object ray randoms = (shaded, randoms')
+      where (shaded, randoms') = shade object (fromIntersection $ intersect object ray) randoms
 
-shade :: Object -> Maybe Material -> [Double] -> Vector
-shade _ Nothing _ = Vector [1, 1, 1]
-shade object (Just (Diffuse i n)) randoms = multiplyscalar 0.5 $ shadeSingle object reflected randoms'
+shade :: Object -> Maybe Material -> [Double] -> (Vector, [Double])
+shade _ Nothing randoms = (Vector [1, 1, 1], randoms)
+shade object (Just (Diffuse i n)) randoms = (multiplyscalar 0.5 shaded, randoms'')
     where target v = Vector.add (Vector.add i n) v
           (v, randoms') = randomInUnitSphere randoms
           reflected = Ray i (Vector.subtract (target v) i)
+          (shaded, randoms'') = shadeSingle object reflected randoms'
