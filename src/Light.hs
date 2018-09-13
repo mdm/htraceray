@@ -19,6 +19,8 @@ shadeChunked samples object rays randoms = (average shaded):(shadeChunked sample
             (shaded, randoms') = shadeAll object chunk randoms
 
 shadeAll :: Object -> [Ray] -> [Double] -> ([Vector], [Double])
+shadeAll object (ray:[]) randoms = ([shaded], randoms')
+      where (shaded, randoms') = shadeSingle object ray randoms
 shadeAll object (ray:rays) randoms = (shaded:rest, randoms'')
       where (shaded, randoms') = shadeSingle object ray randoms
             (rest, randoms'') = shadeAll object rays randoms'
