@@ -9,9 +9,9 @@ import Image
 import Light
 import Material
 
-camera = Camera 200 100 (sqrt 8)
+camera = Camera 400 200 (sqrt 8)
 -- camera = Camera 1920 1080 (sqrt 8)
-samples = 50
+samples = 100
 
 world = SimpleScene [
     Sphere (Vector [0, 0, -1]) 0.5 $ Diffuse (Vector [0.8, 0.3, 0.3]),

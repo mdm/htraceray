@@ -20,28 +20,29 @@ shadeChunked samples object rays randoms = (average shaded):(shadeChunked sample
 
 shadeAll :: Object -> [Ray] -> [Double] -> ([Vector], [Double])
 shadeAll object (ray:[]) randoms = ([shaded], randoms')
-      where (shaded, randoms') = shadeSingle object ray randoms
+      where (shaded, randoms') = shadeSingle 50 object ray randoms
 shadeAll object (ray:rays) randoms = (shaded:rest, randoms'')
-      where (shaded, randoms') = shadeSingle object ray randoms
+      where (shaded, randoms') = shadeSingle 50 object ray randoms
             (rest, randoms'') = shadeAll object rays randoms'
 
-shadeSingle :: Object -> Ray -> [Double] -> (Vector, [Double])
-shadeSingle object ray randoms = (shaded, randoms')
-      where (shaded, randoms') = shade object (fromIntersection $ intersect object ray) randoms
+shadeSingle :: Int-> Object -> Ray -> [Double] -> (Vector, [Double])
+shadeSingle 0 _ _ randoms = (Vector [0, 0, 0], randoms)
+shadeSingle limit object ray randoms = (shaded, randoms')
+      where (shaded, randoms') = shade limit object (fromIntersection $ intersect object ray) randoms
 
-shade :: Object -> Maybe Material -> [Double] -> (Vector, [Double])
-shade _ Nothing randoms = (Vector [1, 1, 1], randoms)
-shade object (Just (Diffuse a i _ n)) randoms = (multiplyvector a shaded, randoms'')
+shade :: Int -> Object -> Maybe Material -> [Double] -> (Vector, [Double])
+shade _ _ Nothing randoms = (Vector [1, 1, 1], randoms)
+shade limit object (Just (Diffuse a i _ n)) randoms = (multiplyvector a shaded, randoms'')
     where target v = Vector.add (Vector.add i n) v
           (v, randoms') = randomInUnitSphere randoms
           reflected = Ray i (Vector.subtract (target v) i)
-          (shaded, randoms'') = shadeSingle object reflected randoms'
-shade object (Just (Metal a f i d n)) randoms | (dotproduct (Ray.direction reflected) n) > 0 = (multiplyvector a shaded, randoms'')
+          (shaded, randoms'') = shadeSingle (limit - 1) object reflected randoms'
+shade limit object (Just (Metal a f i d n)) randoms | (dotproduct (Ray.direction reflected) n) > 0 = (multiplyvector a shaded, randoms'')
                                               | otherwise = (Vector [0, 0, 0], randoms'')
       where (v, randoms') = randomInUnitSphere randoms
             reflected = Ray i (Vector.add (multiplyscalar (clamp f) v) (Vector.subtract d (multiplyscalar (2 * (dotproduct d n)) n)))
-            (shaded, randoms'') = shadeSingle object reflected randoms'
-shade object (Just (Dielectric ri i d n)) randoms | discriminant > 0 = (multiplyvector (Vector [1, 1, 0]) shaded, randoms')
+            (shaded, randoms'') = shadeSingle (limit - 1) object reflected randoms'
+shade limit object (Just (Dielectric ri i d n)) randoms | discriminant > 0 = (multiplyvector (Vector [1, 1, 0]) shaded, randoms')
                                                   | otherwise = (Vector [0, 0, 0], randoms')
       where reflected = Ray i (Vector.subtract d (multiplyscalar (2 * (dotproduct d n)) n))
             goingOut = dotproduct d n > 0
@@ -53,4 +54,4 @@ shade object (Just (Dielectric ri i d n)) randoms | discriminant > 0 = (multiply
             dt = dotproduct normalizedD normal
             discriminant = 1 - ratio * ratio * (1 - dt * dt)
             refracted = Ray i (Vector.subtract (multiplyscalar ratio (Vector.subtract normalizedD (multiplyscalar dt normal))) (multiplyscalar (sqrt discriminant) normal))
-            (shaded, randoms') = shadeSingle object refracted randoms
+            (shaded, randoms') = shadeSingle (limit - 1) object refracted randoms
