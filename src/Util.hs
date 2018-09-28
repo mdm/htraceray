@@ -14,6 +14,7 @@ instance Ord Intersection where
 
 average :: [Vector] -> Vector
 average [xs] = xs
+-- average xs = multiplyscalar (1 / (fromIntegral $ length xs)) (foldr1 Vector.add (filter (\x -> dotproduct x x > 0) xs))
 average xs = multiplyscalar (1 / (fromIntegral $ length xs)) (foldr1 Vector.add xs)
 
 randomInUnitSphere :: [Double] -> (Vector, [Double])
@@ -24,3 +25,6 @@ randomInUnitSphere randoms = head $ filter insideSphere $ map candidate (randomV
 randomVectors :: [Double] -> [(Vector, [Double])]
 randomVectors randoms = (Vector xs, randoms'):(randomVectors randoms')
     where (xs, randoms') = splitAt 3 randoms
+
+clamp :: Double -> Double
+clamp x = max (min x 1) 0
