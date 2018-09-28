@@ -41,3 +41,16 @@ shade object (Just (Metal a f i d n)) randoms | (dotproduct (Ray.direction refle
       where (v, randoms') = randomInUnitSphere randoms
             reflected = Ray i (Vector.add (multiplyscalar (clamp f) v) (Vector.subtract d (multiplyscalar (2 * (dotproduct d n)) n)))
             (shaded, randoms'') = shadeSingle object reflected randoms'
+shade object (Just (Dielectric ri i d n)) randoms | discriminant > 0 = (multiplyvector (Vector [1, 1, 0]) shaded, randoms')
+                                                  | otherwise = (Vector [0, 0, 0], randoms')
+      where reflected = Ray i (Vector.subtract d (multiplyscalar (2 * (dotproduct d n)) n))
+            goingOut = dotproduct d n > 0
+            normal | goingOut = multiplyscalar (-1) n
+                   | otherwise = n
+            ratio | goingOut = ri
+                  | otherwise = 1 / ri
+            normalizedD = normalize d
+            dt = dotproduct normalizedD normal
+            discriminant = 1 - ratio * ratio * (1 - dt * dt)
+            refracted = Ray i (Vector.subtract (multiplyscalar ratio (Vector.subtract normalizedD (multiplyscalar dt normal))) (multiplyscalar (sqrt discriminant) normal))
+            (shaded, randoms') = shadeSingle object refracted randoms
