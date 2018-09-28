@@ -8,11 +8,15 @@ import Image
 import Light
 import Material
 
--- camera = Camera 200 100 (sqrt 8)
-camera = Camera 1920 1080 (sqrt 8)
-samples = 100
+camera = Camera 400 200 (sqrt 8)
+-- camera = Camera 1920 1080 (sqrt 8)
+samples = 200
 
-world = SimpleScene [Sphere (Vector [0, 0, -1]) 0.5 Diffuse, Sphere (Vector [0, -100.5, -1]) 100 Diffuse]
+world = SimpleScene [
+    Sphere (Vector [0, 0, -1]) 0.5 $ Diffuse (Vector [0.8, 0.3, 0.3]),
+    Sphere (Vector [0, -100.5, -1]) 100 $ Diffuse (Vector [0.8, 0.8, 0.0]),
+    Sphere (Vector [1, 0, -1]) 0.5 $ Metal (Vector [0.8, 0.6, 0.2]),
+    Sphere (Vector [-1, 0, -1]) 0.5 $ Metal (Vector [0.8, 0.8, 0.8])]
 
 main = do 
           gen <- getStdGen -- use separate gens?

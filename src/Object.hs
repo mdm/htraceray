@@ -5,7 +5,7 @@ import Ray
 import Material
 import Util
 
-data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Material) } |
+data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Vector -> Material) } |
               Plane { point :: Vector, normal :: Vector } |
               SimpleScene { objects :: [Object] }
               
@@ -28,7 +28,7 @@ intersect (Sphere center radius material) (Ray origin direction) | discriminant 
                                                                  | t < 0.001 = Nothing
                                                                  | otherwise = Just $ let i = multiplyscalar t direction
                                                                                           n = normalize (Vector.subtract i center)
-                                                                                      in Intersection t (material i n)
+                                                                                      in Intersection t (material i direction n)
                                                                  where oc = Vector.subtract origin center
                                                                        a = dotproduct direction direction
                                                                        b = 2 * (dotproduct oc direction)

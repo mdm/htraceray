@@ -31,8 +31,12 @@ shadeSingle object ray randoms = (shaded, randoms')
 
 shade :: Object -> Maybe Material -> [Double] -> (Vector, [Double])
 shade _ Nothing randoms = (Vector [1, 1, 1], randoms)
-shade object (Just (Diffuse i n)) randoms = (multiplyscalar 0.5 shaded, randoms'')
+shade object (Just (Diffuse a i _ n)) randoms = (multiplyvector a shaded, randoms'')
     where target v = Vector.add (Vector.add i n) v
           (v, randoms') = randomInUnitSphere randoms
           reflected = Ray i (Vector.subtract (target v) i)
           (shaded, randoms'') = shadeSingle object reflected randoms'
+shade object (Just (Metal a i d n)) randoms | (dotproduct (Ray.direction reflected) n) > 0 = (multiplyvector a shaded, randoms')
+                                            | otherwise = (Vector [0, 0, 0], randoms)
+      where reflected = Ray i (Vector.subtract d (multiplyscalar (2 * (dotproduct d n)) n))
+            (shaded, randoms') = shadeSingle object reflected randoms
