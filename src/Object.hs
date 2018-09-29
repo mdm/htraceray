@@ -26,7 +26,7 @@ data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -
 
 intersect (Sphere center radius material) (Ray origin direction) | discriminant < 0 = Nothing
                                                                  | t < 0.001 = Nothing
-                                                                 | otherwise = Just $ let i = multiplyscalar t direction
+                                                                 | otherwise = Just $ let i = Vector.add origin (multiplyscalar t direction)
                                                                                           n = normalize (Vector.subtract i center)
                                                                                       in Intersection t (material i direction n)
                                                                  where oc = Vector.subtract origin center
@@ -34,7 +34,10 @@ intersect (Sphere center radius material) (Ray origin direction) | discriminant 
                                                                        b = 2 * (dotproduct oc direction)
                                                                        c = (dotproduct oc oc) - (radius * radius)
                                                                        discriminant = (b * b) - (4 * a * c)
-                                                                       t = (-b - (sqrt discriminant)) / (2 * a)
+                                                                       candidate1 = (-b - (sqrt discriminant)) / (2 * a)
+                                                                       candidate2 = (-b + (sqrt discriminant)) / (2 * a)
+                                                                       t | candidate1 < 0.001 = candidate2
+                                                                         | otherwise = candidate1
 
 intersect (Plane p n) (Ray o d) = Nothing
 
