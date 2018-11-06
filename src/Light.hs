@@ -33,7 +33,7 @@ shadeSingle limit object ray randoms = (shaded, randoms')
 shade :: Int -> Object -> Maybe Material -> [Double] -> (Vector, [Double])
 shade _ _ Nothing randoms = (Vector [1, 1, 1], randoms)
 shade limit object (Just (Diffuse a i _ n)) randoms = (multiplyvector a shaded, randoms'')
-    where target v = Vector.add (Vector.add i n) v
+    where target = Vector.add (Vector.add i n)
           (v, randoms') = randomInUnitSphere randoms
           reflected = Ray i (Vector.subtract (target v) i)
           (shaded, randoms'') = shadeSingle (limit - 1) object reflected randoms'
