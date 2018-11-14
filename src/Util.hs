@@ -3,7 +3,7 @@ module Util where
 import Vector
 import Material
 
-data Camera = Camera {width :: Int, height :: Int, f :: Double}
+data Camera = Camera {width :: Int, height :: Int, fov :: Int, origin :: Vector, lookat :: Vector, up :: Vector}
 data Intersection = Intersection Double Material deriving Show
 
 instance Eq Intersection where

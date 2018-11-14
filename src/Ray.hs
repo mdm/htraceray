@@ -6,25 +6,28 @@ import Util
 data Ray = Ray {origin :: Vector, direction :: Vector} deriving Show
 
 cameraRays :: Camera -> Int -> [Double] -> [Ray]
-cameraRays (Camera w h f) samples randoms = cameraRays' w h samples w h samples randoms
+cameraRays camera@(Camera w h _ _ _ _) samples randoms = cameraRays' w h samples camera samples randoms
 
-cameraRays' :: Int -> Int -> Int -> Int -> Int -> Int -> [Double] -> [Ray]
-cameraRays' _ 0 _ _ _ _ _ = []
-cameraRays' 0 y _ w h samples randoms = cameraRays' w (y - 1) samples w h samples randoms
-cameraRays' x y 0 w h samples randoms = cameraRays' (x - 1) y samples w h samples randoms
-cameraRays' x y s w h samples randoms = cameraRay:(cameraRays' x y (s - 1) w h samples randoms')
-    where (cameraRay, randoms') = cameraRay' (fromIntegral (w - x)) (fromIntegral (y - 1)) (fromIntegral w) (fromIntegral h) randoms
+cameraRays' :: Int -> Int -> Int -> Camera -> Int -> [Double] -> [Ray]
+cameraRays' _ 0 _ _ _ _ = []
+cameraRays' 0 y _ camera@(Camera w _ _ _ _ _) samples randoms = cameraRays' w (y - 1) samples camera samples randoms
+cameraRays' x y 0 camera samples randoms = cameraRays' (x - 1) y samples camera samples randoms
+cameraRays' x y s camera@(Camera w h _ _ _ _) samples randoms = cameraRay:(cameraRays' x y (s - 1) camera samples randoms')
+    where (cameraRay, randoms') = cameraRay' (w - x) (y - 1) camera randoms
 
-cameraRay' :: Double -> Double -> Double -> Double -> [Double] -> (Ray, [Double])
-cameraRay' x y w h (jitterX:jitterY:randoms') = (Ray (Vector [0, 0, 0]) direction', randoms')
-    where horizontal | w > h = 2 * w / h
-                     | otherwise = 2
-          vertical | w > h = 2
-                   | otherwise = 2 * h / w
-          u = (x + jitterX) / w
-          v = (y + jitterY) / h
-          offset | w > h = Vector [-(horizontal / vertical), -1, -1]
-                 | otherwise = Vector [-1, -(vertical / horizontal), -1]
-          direction' = Vector.add offset (Vector [u * horizontal, v * vertical, 0])
+cameraRay' :: Int -> Int -> Camera -> [Double] -> (Ray, [Double])
+cameraRay' x y (Camera w h f o l u) (jitterX:jitterY:randoms') = (Ray o direction', randoms')
+    where theta = fromIntegral f * pi / 180
+          aspect = (fromIntegral w) / fromIntegral h
+          halfHeight = tan (theta / 2)
+          halfWidth = aspect * halfHeight
+          _w = normalize $ Vector.subtract o l
+          _u = normalize $ crossproduct u _w
+          _v = crossproduct _w _u
+          s = ((fromIntegral x) + jitterX) / fromIntegral w
+          t = ((fromIntegral y) + jitterY) / fromIntegral h
+          ms = multiplyscalar
+          offset = foldl Vector.subtract o [ms halfWidth _u, ms halfHeight _v, _w]
+          direction' = Vector.subtract (foldl Vector.add offset [ms (s * 2 * halfWidth) _u, ms (t * 2 * halfHeight) _v]) o
 
 -- recurse in cameraRays, passing randoms'
