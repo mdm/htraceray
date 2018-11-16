@@ -9,9 +9,9 @@ import Image
 import Light
 import Material
 
--- camera = Camera 400 200 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
-camera = Camera 1920 1080 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
-samples = 200
+camera = Camera 400 200 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
+-- camera = Camera 1920 1080 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
+samples = 100
 
 world = SimpleScene [
     Sphere (Vector [0, 0, -1]) 0.5 $ Diffuse (Vector [0.8, 0.3, 0.3]),

@@ -1,10 +1,7 @@
-- multiple objects
-- materials
-- blinn-phong shading
-- shadow rays
-- reflection
-- refraction
-- triangle intersecton
-- mesh intersection
-- multisampling
+- bounding volume hierachry for speed
+- textures
+- lights
+- transforms
+- triangle intersections
+- obj loader
 
