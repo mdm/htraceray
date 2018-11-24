@@ -1,5 +1,7 @@
 module Object where
 
+import Data.List (sortBy)
+
 import Vector
 import Ray
 import Material
@@ -45,16 +47,33 @@ intersect (Scene objects) ray = closest (map ((flip intersect) ray) objects)
                                       where closest [] = Nothing
                                             closest [x] = x
                                             closest (x:xs) = min' x (closest xs)
-                                            min' Nothing Nothing = Nothing
-                                            min' a Nothing = a
-                                            min' Nothing b = b
-                                            min' (Just a) (Just b) = Just (Prelude.min a b)
+intersect (BVH left right aabb) ray | hit aabb ray = min' (intersect left ray) (intersect right ray)
+                                    | otherwise = Nothing
 
-makeAABB :: Double -> Double -> Object -> Maybe AABB
-makeAABB _ _ (Sphere center radius _) = Just $ AABB (Vector.subtract center vr) (Vector.add center vr)
+min' :: (Ord a) => Maybe a -> Maybe a -> Maybe a
+min' Nothing Nothing = Nothing
+min' a Nothing = a
+min' Nothing b = b
+min' (Just a) (Just b) = Just (Prelude.min a b)
+
+makeAABB :: Object -> AABB
+makeAABB (Sphere center radius _) = AABB (Vector.subtract center vr) (Vector.add center vr)
     where vr = Vector [radius, radius, radius]
-makeAABB _ _ (Plane _ _) = Nothing
-makeAABB _ _ (Scene []) = Nothing
-makeAABB t0 t1 (Scene [object]) = makeAABB t0 t1 object
-makeAABB t0 t1 (Scene objects) = foldl1 surround aabbs
-    where aabbs = map (makeAABB t0 t1) objects
+makeAABB (Plane _ _) = error "Cannot make AABB for unbounded object"
+makeAABB (Scene []) = error "Cannot make AABB for unbounded object"
+makeAABB (Scene objects) = foldl1 surround aabbs
+    where aabbs = map makeAABB objects
+makeAABB (BVH _ _ aabb) = aabb
+
+makeBVH :: [Object] -> [Double] -> (Object, [Double])
+makeBVH [] _ = error "Cannot build empty BVH"
+makeBVH [object] randoms = (object, randoms)
+makeBVH objects randoms = (BVH left' right' aabb', randoms''')
+    where (axis, randoms') = (floor $ head randoms, tail randoms)
+          compareObjects a b = AABB.compare (makeAABB a) (makeAABB b) axis
+          (leftObjects, rightObjects) = splitAt (length objects `div` 2) (sortBy compareObjects objects)
+          (left', randoms'') | length leftObjects == 1 = (head leftObjects, randoms')
+                             | otherwise = makeBVH leftObjects randoms'
+          (right', randoms''') | length rightObjects == 1 = (head rightObjects, randoms'')
+                               | otherwise = makeBVH rightObjects randoms''
+          aabb' = surround (makeAABB left') (makeAABB right')
