@@ -28,3 +28,7 @@ randomVectors randoms = (Vector xs, randoms'):(randomVectors randoms')
 
 clamp :: Double -> Double
 clamp x = max (min x 1) 0
+
+-- foldlM :: (Foldable t, Monad m) => ((b -> (a -> (m b))) -> (b -> ((t a) -> (m b))))
+-- foldlM f z0 xs = (((foldr f') return) xs) z0
+-- where f' x k z = (((f z) x) >>= k)

@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Image Light Material Matrix Object Ray Util Vector
+  exposed-modules:     Image Light Material Matrix Object Ray Util Vector AABB
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , monad-loops

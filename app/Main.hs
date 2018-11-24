@@ -13,7 +13,7 @@ camera = Camera 400 200 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1
 -- camera = Camera 1920 1080 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
 samples = 100
 
-world = SimpleScene [
+world = Scene [
     Sphere (Vector [0, 0, -1]) 0.5 $ Diffuse (Vector [0.8, 0.3, 0.3]),
     -- Sphere (Vector [0, 0, -1]) 0.5 $ Dielectric 1.5,
     Sphere (Vector [0, -100.5, -1]) 100 $ Diffuse (Vector [0.8, 0.8, 0.8]),
