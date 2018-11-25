@@ -72,8 +72,6 @@ makeBVH objects randoms = (BVH left' right' aabb', randoms''')
     where (axis, randoms') = (floor $ head randoms, tail randoms)
           compareObjects a b = AABB.compare (makeAABB a) (makeAABB b) axis
           (leftObjects, rightObjects) = splitAt (length objects `div` 2) (sortBy compareObjects objects)
-          (left', randoms'') | length leftObjects == 1 = (head leftObjects, randoms')
-                             | otherwise = makeBVH leftObjects randoms'
-          (right', randoms''') | length rightObjects == 1 = (head rightObjects, randoms'')
-                               | otherwise = makeBVH rightObjects randoms''
+          (left', randoms'') = makeBVH leftObjects randoms'
+          (right', randoms''') = makeBVH rightObjects randoms''
           aabb' = surround (makeAABB left') (makeAABB right')

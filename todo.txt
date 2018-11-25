@@ -1,4 +1,3 @@
-- bounding volume hierachry for speed
 - textures
 - lights
 - transforms
