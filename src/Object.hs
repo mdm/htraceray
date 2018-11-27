@@ -9,6 +9,7 @@ import Util
 import AABB
 
 data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Vector -> Material) } |
+              Triangle { vertices :: [Vector], material :: (Vector -> Vector -> Vector -> Material) } |
               Plane { point :: Vector, normal :: Vector } |
               Scene { objects :: [Object] } |
               BVH { left :: Object, right :: Object, aabb :: AABB }
@@ -42,6 +43,23 @@ intersect (Sphere center radius material) (Ray origin direction) | discriminant 
                                                                        candidate2 = (-b + (sqrt discriminant)) / (2 * a)
                                                                        t | candidate1 < 0.001 = candidate2
                                                                          | otherwise = candidate1
+intersect (Triangle (p0:p1:p2:[]) material) (Ray origin direction) | a > -0.001 && a < 0.001 = Nothing
+                                                          | u < 0 = Nothing
+                                                          | v < 0 || u + v > 1 = Nothing
+                                                          | t < 0.001 = Nothing
+                                                          | otherwise = Just $ let i = Vector.add origin (multiplyscalar t direction)
+                                                                                   n = normalize (crossproduct e1 e2)
+                                                                               in Intersection t (material i direction n)
+    where e1 = Vector.subtract p1 p0
+          e2 = Vector.subtract p2 p0
+          q = crossproduct direction e2
+          a = dotproduct e1 q
+          f = 1 / a
+          s = Vector.subtract origin p0
+          u = f * (dotproduct s q)
+          r = crossproduct s e1
+          v = f * (dotproduct direction r)
+          t = f * (dotproduct e2 r)
 intersect (Plane p n) (Ray o d) = Nothing
 intersect (Scene objects) ray = closest (map ((flip intersect) ray) objects)
                                       where closest [] = Nothing
@@ -59,6 +77,8 @@ min' (Just a) (Just b) = Just (Prelude.min a b)
 makeAABB :: Object -> AABB
 makeAABB (Sphere center radius _) = AABB (Vector.subtract center vr) (Vector.add center vr)
     where vr = Vector [radius, radius, radius]
+makeAABB (Triangle vertices _) = AABB (Vector $ foldl1 (zipWith Prelude.min) vs) (Vector $ foldl1 (zipWith Prelude.max) vs)
+    where vs = map elements vertices
 makeAABB (Plane _ _) = error "Cannot make AABB for unbounded object"
 makeAABB (Scene []) = error "Cannot make AABB for unbounded object"
 makeAABB (Scene objects) = foldl1 surround aabbs
