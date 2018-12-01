@@ -14,6 +14,8 @@ data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -
               Scene { objects :: [Object] } |
               BVH { left :: Object, right :: Object, aabb :: AABB }
 
+epsilon = 0.00001
+
 intersect :: Object -> Ray -> Maybe Intersection
 -- intersect (Sphere c r) (Ray o d) | s < 0 && l2 > r2 = Nothing
 --                                  | m2 > r2          = Nothing
@@ -30,7 +32,7 @@ intersect :: Object -> Ray -> Maybe Intersection
 --                                          m2 = l2 - s * s
 --                                          q = sqrt (r2 - m2)
 intersect (Sphere center radius material) (Ray origin direction) | discriminant < 0 = Nothing
-                                                                 | t < 0.001 = Nothing
+                                                                 | t < epsilon = Nothing
                                                                  | otherwise = Just $ let i = Vector.add origin (multiplyscalar t direction)
                                                                                           n = normalize (Vector.subtract i center)
                                                                                       in Intersection t (material i direction n)
@@ -41,12 +43,12 @@ intersect (Sphere center radius material) (Ray origin direction) | discriminant 
                                                                        discriminant = (b * b) - (4 * a * c)
                                                                        candidate1 = (-b - (sqrt discriminant)) / (2 * a)
                                                                        candidate2 = (-b + (sqrt discriminant)) / (2 * a)
-                                                                       t | candidate1 < 0.001 = candidate2
+                                                                       t | candidate1 < epsilon = candidate2
                                                                          | otherwise = candidate1
-intersect (Triangle (p0:p1:p2:[]) material) (Ray origin direction) | a > -0.001 && a < 0.001 = Nothing
+intersect (Triangle (p0:p1:p2:[]) material) (Ray origin direction) | a > epsilon && a < epsilon = Nothing
                                                           | u < 0 = Nothing
                                                           | v < 0 || u + v > 1 = Nothing
-                                                          | t < 0.001 = Nothing
+                                                          | t < epsilon = Nothing
                                                           | otherwise = Just $ let i = Vector.add origin (multiplyscalar t direction)
                                                                                    n = normalize (crossproduct e1 e2)
                                                                                in Intersection t (material i direction n)

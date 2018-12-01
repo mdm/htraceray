@@ -1,6 +1,4 @@
 - textures
 - lights
 - transforms
-- triangle intersections
-- obj loader
-
+- use multiple cores

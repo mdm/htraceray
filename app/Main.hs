@@ -1,20 +1,19 @@
 import System.Random.Mersenne
 import Text.Pretty.Simple (pPrint)
+import Text.Printf(printf)
 
 import Ray
 import Object
 import Vector
 import Util
-import Image
+import FileIO
 import Light
 import Material
 
--- camera = Camera 400 200 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
--- camera = Camera 400 200 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0])
--- camera = Camera 1920 1080 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0])
-camera = Camera 400 200 90 (Vector [0, 0, 0]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
--- camera = Camera 1920 1080 45 (Vector [-2, 2, 1]) (Vector [0, 0, -1]) (Vector [0, 1, 0])
-samples = 100
+-- camera = Camera 400 200 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0]) -- random world
+camera = Camera 800 400 20 (Vector [0, 1, 5]) (Vector [0, 1, -1]) (Vector [0, 1, 0]) -- bunny
+camera = Camera 800 400 20 (Vector [0, 1, 5]) (Vector [0, 1, -1]) (Vector [0, 1, 0]) -- suzanne
+samples = 10
 
 triangle = Triangle [Vector [0, 0, -1],Vector [0.5, 0, -1],Vector [0.5, 0.5, -1]] $ Diffuse (Vector [0.8, 0.3, 0.3])
 
@@ -61,8 +60,9 @@ main = do
           randoms2 <- randoms gen
           randoms3 <- randoms gen
         --   randoms4 <- randoms gen
-        --   save "output.png" camera $ shadeChunked samples triangle (cameraRays camera samples randoms2) randoms3
-          save "output.png" camera $ shadeChunked samples (fst $ makeBVH world randoms1) (cameraRays camera samples randoms2) randoms3
+          bunny <- readObjFile "suzanne.obj" $ Diffuse (Vector [0.8, 0.3, 0.3])
+        --   save "output.png" camera $ shadeChunked samples (Scene bunny) (cameraRays camera samples randoms2) randoms3
+          save "output.png" camera $ shadeChunked samples (fst $ makeBVH bunny randoms1) (cameraRays camera samples randoms2) randoms3
         --   save "output.png" camera $ shadeChunked samples (Scene (randomWorld randoms1)) (cameraRays camera samples randoms3) randoms4
         --   save "output.png" camera $ shadeChunked samples (fst $ makeBVH (randomWorld randoms1) randoms2) (cameraRays camera samples randoms3) randoms4
 
@@ -70,3 +70,10 @@ main = do
 --           gen <- getStdGen
 --           randoms1 <- randoms gen
 --           pPrint $ map (intersect triangle) (cameraRays camera 1 randoms1)
+
+-- main = do 
+--           gen <- getStdGen -- use separate gens?
+--         --   randoms1 <- randoms gen
+--           bunny <- readObjFile "bunny.1.obj" $ Diffuse (Vector [0.8, 0.3, 0.3])
+--           mapM printVertex (map elements bunny)
+--     where printVertex vertex = putStrLn $ foldl1 (++) $ map (printf " %.7e") vertex
