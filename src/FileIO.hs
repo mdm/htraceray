@@ -21,7 +21,7 @@ readObjFile path material = do
                       return $ readObjFile' contents
                   --     return $ makeVertices2 (extractLines 'v' contents)
     where extractLines lineType contents = filter (\line -> head line == lineType) $ lines contents
-          makeVertices lines = V.fromList $ map ((multiplyscalar 10) . Vector . (map read) . tail . words) lines
+          makeVertices lines = V.fromList $ map ((multiplyscalar 1) . Vector . (map read) . tail . words) lines
           makeVertices2 lines = map ((multiplyscalar 1) . Vector . (map read) . tail . words) lines
           makeFaces vertices lines = map ((flip Triangle material) . (map ((V.!) vertices . (\i -> i - 1) . read)) . tail . words) lines
           readObjFile' contents = makeFaces (makeVertices (extractLines 'v' contents)) (extractLines 'f' contents)

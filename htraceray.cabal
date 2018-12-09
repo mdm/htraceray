@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     FileIO Light Material Matrix Object Ray Util Vector AABB
+  exposed-modules:     FileIO Light Material Matrix Object Ray Util Vector AABB Transform
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , monad-loops

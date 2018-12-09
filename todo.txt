@@ -1,4 +1,4 @@
 - textures
 - lights
-- transforms
+- transform normals correctly
 - use multiple cores

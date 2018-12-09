@@ -7,12 +7,14 @@ import Ray
 import Material
 import Util
 import AABB
+import Transform
 
 data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Vector -> Material) } |
               Triangle { vertices :: [Vector], material :: (Vector -> Vector -> Vector -> Material) } |
               Plane { point :: Vector, normal :: Vector } |
               Scene { objects :: [Object] } |
-              BVH { left :: Object, right :: Object, aabb :: AABB }
+              BVH { left :: Object, right :: Object, aabb :: AABB } |
+              TransformWrapper { transform :: Transform, object :: Object }
 
 epsilon = 0.00001
 
@@ -69,6 +71,15 @@ intersect (Scene objects) ray = closest (map ((flip intersect) ray) objects)
                                             closest (x:xs) = min' x (closest xs)
 intersect (BVH left right aabb) ray | hit aabb ray = min' (intersect left ray) (intersect right ray)
                                     | otherwise = Nothing
+intersect (TransformWrapper transform object) (Ray origin direction) = fmap (transformIntersection transform) $ intersect object (Ray o' d')
+    where o' = Transform.applyInverse transform origin
+          d' = Transform.applyInverse transform direction
+
+transformIntersection transform (Intersection t material) = Intersection t material'
+    where i' = Transform.apply transform $ Material.point material
+          d' = Transform.apply transform $ Material.direction material
+          n' = Transform.apply transform $ Material.normal material
+          material' = material { Material.point = i', Material.direction = d', Material.normal = n' }
 
 min' :: (Ord a) => Maybe a -> Maybe a -> Maybe a
 min' Nothing Nothing = Nothing
