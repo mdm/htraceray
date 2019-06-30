@@ -1,5 +1,6 @@
 module Util where
 
+import System.Random.Mersenne.Pure64
 import Vector
 import Material
 
@@ -28,6 +29,11 @@ randomVectors randoms = (Vector xs, randoms'):(randomVectors randoms')
 
 clamp :: Double -> Double
 clamp x = max (min x 1) 0
+
+split :: PureMT -> (PureMT, PureMT)
+split g = (pureMT a, pureMT b)
+    where (a, g') = randomWord64 g
+          (b, _) = randomWord64 g'
 
 -- foldlM :: (Foldable t, Monad m) => ((b -> (a -> (m b))) -> (b -> ((t a) -> (m b))))
 -- foldlM f z0 xs = (((foldr f') return) xs) z0

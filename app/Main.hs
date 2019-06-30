@@ -1,4 +1,4 @@
-import System.Random.Mersenne
+import System.Random.Mersenne.Pure64
 import Text.Pretty.Simple (pPrint)
 import Text.Printf(printf)
 
@@ -56,14 +56,11 @@ randomMetal randoms = (Metal (multiplyscalar 0.5 (Vector [1 + x, 1 + y, 1 + z]))
 
 
 main = do 
-          gen <- getStdGen -- use separate gens?
-          randoms1 <- randoms gen
-          randoms2 <- randoms gen
-          randoms3 <- randoms gen
+          randoms <- newPureMT -- use separate gens?
         --   randoms4 <- randoms gen
           bunny <- readObjFile "suzanne.obj" $ Diffuse (Vector [0.8, 0.3, 0.3])
         --   save "output.png" camera $ shadeChunked samples (Scene bunny) (cameraRays camera samples randoms2) randoms3
-          save "output.png" camera $ shadeChunked samples (TransformWrapper (Rotate (Vector [0, 1, 0]) 45) $ fst $ makeBVH bunny randoms1) (cameraRays camera samples randoms2) randoms3
+          save "output.png" camera $ shadeChunked samples (TransformWrapper (Rotate (Vector [0, 1, 0]) 45) $ fst $ makeBVH bunny randoms) (cameraRays camera samples randoms) randoms
         --   save "output.png" camera $ shadeChunked samples (Scene (randomWorld randoms1)) (cameraRays camera samples randoms3) randoms4
         --   save "output.png" camera $ shadeChunked samples (fst $ makeBVH (randomWorld randoms1) randoms2) (cameraRays camera samples randoms3) randoms4
 
