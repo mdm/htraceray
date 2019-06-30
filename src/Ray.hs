@@ -1,23 +1,28 @@
 module Ray where
 
+import System.Random.Mersenne.Pure64 (PureMT, randomDouble)
+
 import Vector
 import Util
 
 data Ray = Ray {origin :: Vector, direction :: Vector} deriving Show
 
-cameraRays :: Camera -> Int -> [Double] -> [Ray]
+cameraRays :: Camera -> Int -> PureMT -> [Ray]
 cameraRays camera@(Camera w h _ _ _ _) samples randoms = cameraRays' w h samples camera samples randoms
 
-cameraRays' :: Int -> Int -> Int -> Camera -> Int -> [Double] -> [Ray]
+cameraRays' :: Int -> Int -> Int -> Camera -> Int -> PureMT -> [Ray]
 cameraRays' _ 0 _ _ _ _ = []
 cameraRays' 0 y _ camera@(Camera w _ _ _ _ _) samples randoms = cameraRays' w (y - 1) samples camera samples randoms
 cameraRays' x y 0 camera samples randoms = cameraRays' (x - 1) y samples camera samples randoms
-cameraRays' x y s camera@(Camera w h _ _ _ _) samples randoms = cameraRay:(cameraRays' x y (s - 1) camera samples randoms')
-    where (cameraRay, randoms') = cameraRay' (w - x) (y - 1) camera randoms
+cameraRays' x y s camera@(Camera w h _ _ _ _) samples randoms = cameraRay:(cameraRays' x y (s - 1) camera samples randoms'')
+    where (randoms', randoms'') = split randoms
+          cameraRay = cameraRay' (w - x) (y - 1) camera randoms'
 
-cameraRay' :: Int -> Int -> Camera -> [Double] -> (Ray, [Double])
-cameraRay' x y (Camera w h f o l u) (jitterX:jitterY:randoms') = (Ray o direction', randoms')
-    where theta = fromIntegral f * pi / 180
+cameraRay' :: Int -> Int -> Camera -> PureMT -> Ray
+cameraRay' x y (Camera w h f o l u) randoms = Ray o direction'
+    where (jitterX, randoms') = randomDouble randoms
+          (jitterY, _) = randomDouble randoms'
+          theta = fromIntegral f * pi / 180
           aspect = (fromIntegral w) / fromIntegral h
           halfHeight = tan (theta / 2)
           halfWidth = aspect * halfHeight

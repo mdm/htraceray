@@ -28,7 +28,7 @@ shadeAll object (ray:rays) randoms = shaded:rest
             rest = shadeAll object rays randoms
 
 shadeSingle :: Int-> Object -> Ray -> PureMT -> Vector
-shadeSingle 0 _ _ randoms = Vector [0, 0, 0]
+shadeSingle 0 _ _ _ = Vector [0, 0, 0]
 shadeSingle limit object ray randoms = shade limit object (fromIntersection $ intersect object ray) randoms
 
 shade :: Int -> Object -> Maybe Material -> PureMT -> Vector
