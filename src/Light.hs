@@ -2,6 +2,7 @@ module Light where
 
 import Control.Parallel.Strategies
 import System.Random.Mersenne.Pure64 (PureMT, randomDouble)
+import Data.List.Split
 
 import Vector
 import Util
@@ -17,16 +18,14 @@ fromIntersection (Just (Intersection _ material')) = Just material'
 
 shadeChunked :: Int -> Object -> [Ray] -> PureMT -> [Vector]
 shadeChunked _ _ [] _ = []
--- shadeChunked samples object rays randoms = shadedChunk:shadedRest `using` parListN 4 rpar
-shadeChunked samples object rays randoms = shadedChunk:shadedRest
-      where (chunk, rest) = splitAt samples rays
-            shadedChunk = average $ shadeAll object chunk randoms
-            shadedRest = shadeChunked samples object rest randoms
+shadeChunked samples object rays randoms = map shadeChunk chunks
+      where chunks = chunksOf samples rays
+            shadeChunk chunk = average $ shadeAll object chunk randoms
 
 shadeAll :: Object -> [Ray] -> PureMT -> [Vector]
 shadeAll object (ray:[]) randoms = [shaded]
       where shaded = shadeSingle 50 object ray randoms
-shadeAll object (ray:rays) randoms = shaded:rest
+shadeAll object (ray:rays) randoms = shaded:rest `using` parListChunk 50 rpar
       where shaded = shadeSingle 50 object ray randoms
             rest = shadeAll object rays randoms
 
