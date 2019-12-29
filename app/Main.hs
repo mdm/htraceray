@@ -14,7 +14,7 @@ import Transform
 -- camera = Camera 400 200 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0]) -- random world
 -- camera = Camera 800 400 20 (Vector [0, 1, 5]) (Vector [0, 1, -1]) (Vector [0, 1, 0]) -- bunny
 camera = Camera 800 400 20 (Vector [0, 0, 8]) (Vector [0, 0, -1]) (Vector [0, 1, 0]) -- suzanne
-samples = 10
+samples = 20
 
 triangle = Triangle [Vector [0, 0, -1],Vector [0.5, 0, -1],Vector [0.5, 0.5, -1]] $ Diffuse (Vector [0.8, 0.3, 0.3])
 

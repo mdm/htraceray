@@ -29,7 +29,10 @@ randomVectors randoms = (Vector xs, randoms'):(randomVectors randoms')
 
 randomDoubles :: Int -> PureMT -> ([Double], PureMT)
 randomDoubles 0 randoms = ([], randoms)
-randomDoubles n randoms = ((fst $ randomDouble randoms):(fst $ randomDoubles (n - 1) (snd $ randomDouble randoms)), snd $ randomDoubles (n - 1) (snd $ randomDouble randoms))
+-- randomDoubles n randoms = ((fst $ randomDouble randoms):(fst $ randomDoubles (n - 1) (snd $ randomDouble randoms)), snd $ randomDoubles (n - 1) (snd $ randomDouble randoms))
+randomDoubles n randoms = (double:doubles, randoms'')
+    where (double, randoms') = randomDouble randoms
+          (doubles, randoms'') = randomDoubles (n - 1) randoms'
 
 clamp :: Double -> Double
 clamp x = max (min x 1) 0
