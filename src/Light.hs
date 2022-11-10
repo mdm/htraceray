@@ -25,9 +25,10 @@ shadeChunked samples object rays randoms = map shadeChunk chunks
 shadeAll :: Object -> [Ray] -> PureMT -> [Vector]
 shadeAll object (ray:[]) randoms = [shaded]
       where shaded = shadeSingle 50 object ray randoms
-shadeAll object (ray:rays) randoms = shaded:rest `using` parListChunk 50 rpar
-      where shaded = shadeSingle 50 object ray randoms
-            rest = shadeAll object rays randoms
+shadeAll object (ray:rays) randoms = shaded:rest `using` parListChunk 500 rpar
+      where (randoms', randoms'') = Util.split randoms
+            shaded = shadeSingle 50 object ray randoms'
+            rest = shadeAll object rays randoms''
 
 shadeSingle :: Int-> Object -> Ray -> PureMT -> Vector
 shadeSingle 0 _ _ _ = Vector [0, 0, 0]
