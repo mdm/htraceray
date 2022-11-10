@@ -11,9 +11,9 @@ import Light
 import Material
 import Transform
 
--- camera = Camera 400 200 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0]) -- random world
+camera = Camera 800 400 20 (Vector [13, 2, 3]) (Vector [0, 0, 0]) (Vector [0, 1, 0]) -- random world
 -- camera = Camera 800 400 20 (Vector [0, 1, 5]) (Vector [0, 1, -1]) (Vector [0, 1, 0]) -- bunny
-camera = Camera 800 400 20 (Vector [0, 0, 8]) (Vector [0, 0, -1]) (Vector [0, 1, 0]) -- suzanne
+-- camera = Camera 800 400 20 (Vector [0, 0, 8]) (Vector [0, 0, -1]) (Vector [0, 1, 0]) -- suzanne
 samples = 100
 
 triangle = Triangle [Vector [0, 0, -1],Vector [0.5, 0, -1],Vector [0.5, 0.5, -1]] $ Diffuse (Vector [0.8, 0.3, 0.3])
@@ -54,14 +54,16 @@ randomMetal :: [Double] -> ((Vector -> Vector -> Vector -> Material), [Double])
 randomMetal randoms = (Metal (multiplyscalar 0.5 (Vector [1 + x, 1 + y, 1 + z])) (0.5 * f), randoms')
     where (x:y:z:f:randoms') = randoms
 
+randomDoubles randoms = rd:(Main.randomDoubles newRandoms)
+    where (rd, newRandoms) = randomDouble randoms
+
 
 main = do 
           randoms <- newPureMT -- use separate gens?
-        --   randoms4 <- randoms gen
-          bunny <- readObjFile "suzanne.obj" $ Diffuse (Vector [0.8, 0.3, 0.3])
+        --   bunny <- readObjFile "suzanne.obj" $ Diffuse (Vector [0.8, 0.3, 0.3])
         --   save "output.png" camera $ shadeChunked samples (Scene bunny) (cameraRays camera samples randoms2) randoms3
-          save "output.png" camera $ shadeChunked samples (TransformWrapper (Rotate (Vector [0, 1, 0]) 45) $ makeBVH bunny randoms) (cameraRays camera samples randoms) randoms
-        --   save "output.png" camera $ shadeChunked samples (Scene (randomWorld randoms1)) (cameraRays camera samples randoms3) randoms4
+        --   save "output.png" camera $ shadeChunked samples (TransformWrapper (Rotate (Vector [0, 1, 0]) 45) $ makeBVH bunny randoms) (cameraRays camera samples randoms) randoms
+          save "output.png" camera $ shadeChunked samples (Scene (randomWorld (Main.randomDoubles randoms))) (cameraRays camera samples randoms) randoms
         --   save "output.png" camera $ shadeChunked samples (fst $ makeBVH (randomWorld randoms1) randoms2) (cameraRays camera samples randoms3) randoms4
 
 -- main = do
