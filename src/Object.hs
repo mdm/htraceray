@@ -1,6 +1,7 @@
 module Object where
 
 import Data.List (sortBy)
+import System.Random.Mersenne.Pure64 (PureMT, randomDouble)
 
 import Vector
 import Ray
@@ -98,13 +99,14 @@ makeAABB (Scene objects) = foldl1 surround aabbs
     where aabbs = map makeAABB objects
 makeAABB (BVH _ _ aabb) = aabb
 
-makeBVH :: [Object] -> [Double] -> (Object, [Double])
+makeBVH :: [Object] -> PureMT -> Object
 makeBVH [] _ = error "Cannot build empty BVH"
-makeBVH [object] randoms = (object, randoms)
-makeBVH objects randoms = (BVH left' right' aabb', randoms''')
-    where (axis, randoms') = (floor $ head randoms, tail randoms)
+makeBVH [object] _ = object
+makeBVH objects randoms = BVH left' right' aabb'
+    where axis = floor . fst $ randomDouble randoms
+          (randoms', randoms'') = split randoms
           compareObjects a b = AABB.compare (makeAABB a) (makeAABB b) axis
           (leftObjects, rightObjects) = splitAt (length objects `div` 2) (sortBy compareObjects objects)
-          (left', randoms'') = makeBVH leftObjects randoms'
-          (right', randoms''') = makeBVH rightObjects randoms''
+          left' = makeBVH leftObjects randoms'
+          right' = makeBVH rightObjects randoms''
           aabb' = surround (makeAABB left') (makeAABB right')
