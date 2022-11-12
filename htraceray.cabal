@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     FileIO Light Material Matrix Object Ray Util Vector AABB Transform
+  exposed-modules:     Config FileIO Light Material Matrix Object Ray Util Vector AABB Transform
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , monad-loops
@@ -23,6 +23,7 @@ library
                      , mersenne-random-pure64
                      , parallel
                      , split
+                     , optparse-applicative
   default-language:    Haskell2010
 
 executable htraceray-exe
@@ -32,6 +33,7 @@ executable htraceray-exe
   build-depends:       base
                      , mersenne-random-pure64
                      , pretty-simple
+                     , optparse-applicative
                      , htraceray
   default-language:    Haskell2010
 

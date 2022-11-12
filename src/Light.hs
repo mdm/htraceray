@@ -4,6 +4,7 @@ import Control.Parallel.Strategies
 import System.Random.Mersenne.Pure64 (PureMT, randomDouble)
 import Data.List.Split
 
+import Config
 import Vector
 import Util
 import Object
@@ -16,19 +17,19 @@ fromIntersection :: Maybe Intersection -> Maybe Material
 fromIntersection Nothing = Nothing
 fromIntersection (Just (Intersection _ material')) = Just material'
 
-shadeChunked :: Int -> Object -> [Ray] -> PureMT -> [Vector]
+shadeChunked :: Config -> Object -> [Ray] -> PureMT -> [Vector]
 shadeChunked _ _ [] _ = []
-shadeChunked samples object rays randoms = map shadeChunk chunks
-      where chunks = chunksOf samples rays
-            shadeChunk chunk = average $ shadeAll object chunk randoms
+shadeChunked config object rays randoms = map shadeChunk chunks
+      where chunks = chunksOf (samples config) rays
+            shadeChunk chunk = average $ shadeAll config object chunk randoms
 
-shadeAll :: Object -> [Ray] -> PureMT -> [Vector]
-shadeAll object (ray:[]) randoms = [shaded]
+shadeAll :: Config -> Object -> [Ray] -> PureMT -> [Vector]
+shadeAll _ object (ray:[]) randoms = [shaded]
       where shaded = shadeSingle 50 object ray randoms
-shadeAll object (ray:rays) randoms = shaded:rest `using` parListChunk 500 rpar
+shadeAll config object (ray:rays) randoms = shaded:rest `using` parListChunk (chunkSize config) rpar
       where (randoms', randoms'') = Util.split randoms
             shaded = shadeSingle 50 object ray randoms'
-            rest = shadeAll object rays randoms''
+            rest = shadeAll config object rays randoms''
 
 shadeSingle :: Int-> Object -> Ray -> PureMT -> Vector
 shadeSingle 0 _ _ _ = Vector [0, 0, 0]
