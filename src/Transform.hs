@@ -5,10 +5,12 @@ import Matrix
 
 data Transform = Scale { factors :: Vector } | Translate { offset :: Vector } | Rotate { axis :: Vector, degrees :: Double }
 
-apply :: Transform -> Vector -> Vector
-apply (Scale f) v = Vector.multiplyvector f v
-apply (Translate o) v = Vector.add o v
-apply (Rotate a d) v = Matrix.multiplyvector m v
+apply :: Transform -> Bool -> Vector -> Vector
+apply (Scale f) False v = Vector.multiplyvector f v
+apply (Scale f) True v = Vector.multiplyvector (invert f) v
+    where invert (Vector fs) = Vector $ map (1/) fs
+apply (Translate o) _ v = Vector.add o v
+apply (Rotate a d) _ v = Matrix.multiplyvector m v
     where a' = normalize a
           d' = d * pi / 180
           m = rotationMatrix a' d'

@@ -1,6 +1,8 @@
 module FileIO where
 
 import Codec.Picture
+import Data.List (isPrefixOf)
+import Data.List.Split
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector as V
 
@@ -19,9 +21,12 @@ save filename camera colors = writePng filename $ image camera colors
 readObjFile path material = do
                       contents <- readFile path
                       return $ readObjFile' contents
-                  --     return $ makeVertices2 (extractLines 'v' contents)
-    where extractLines lineType contents = filter (\line -> head line == lineType) $ lines contents
-          makeVertices lines = V.fromList $ map ((multiplyscalar 1) . Vector . (map read) . tail . words) lines
-          makeVertices2 lines = map ((multiplyscalar 1) . Vector . (map read) . tail . words) lines
-          makeFaces vertices lines = map ((flip Triangle material) . (map ((V.!) vertices . (\i -> i - 1) . read)) . tail . words) lines
-          readObjFile' contents = makeFaces (makeVertices (extractLines 'v' contents)) (extractLines 'f' contents)
+    where extractLines lineType contents = filter (\line -> lineType `isPrefixOf` line) $ lines contents
+          makeVectors ls = V.fromList $ map ((multiplyscalar 1) . Vector . (map read) . tail . words) ls
+          vertices contents = makeVectors (extractLines "v" contents)
+          normals contents = makeVectors (extractLines "vn" contents)
+          faceVertices vs = map ((V.!) vs . (\i -> i - 1) . read . (!!0) . (splitOn "/"))
+          faceNormals ns = map (fmap ((V.!) ns . (\i -> i - 1) . read) . flip maybeAt 2 . (splitOn "/"))
+          zipVsAndNs vs ns fs = (faceVertices vs fs, faceNormals ns fs)
+          makeFaces vs ns = map ((\(v, n) -> Triangle v n material) . (zipVsAndNs vs ns) . tail . words)
+          readObjFile' contents = makeFaces (vertices contents) (normals contents) (extractLines "f" contents)

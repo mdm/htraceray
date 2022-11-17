@@ -11,7 +11,7 @@ import AABB
 import Transform
 
 data Object = Sphere { center :: Vector, radius :: Double, material :: (Vector -> Vector -> Vector -> Material) } |
-              Triangle { vertices :: [Vector], material :: (Vector -> Vector -> Vector -> Material) } |
+              Triangle { vertices :: [Vector], normals :: [Maybe Vector], material :: (Vector -> Vector -> Vector -> Material) } |
               Plane { point :: Vector, normal :: Vector } |
               Scene { objects :: [Object] } |
               BVH { left :: Object, right :: Object, aabb :: AABB } |
@@ -48,13 +48,11 @@ intersect (Sphere center radius material) (Ray origin direction) | discriminant 
                                                                        candidate2 = (-b + (sqrt discriminant)) / (2 * a)
                                                                        t | candidate1 < epsilon = candidate2
                                                                          | otherwise = candidate1
-intersect (Triangle (p0:p1:p2:[]) material) (Ray origin direction) | a > epsilon && a < epsilon = Nothing
-                                                          | u < 0 = Nothing
-                                                          | v < 0 || u + v > 1 = Nothing
-                                                          | t < epsilon = Nothing
-                                                          | otherwise = Just $ let i = Vector.add origin (multiplyscalar t direction)
-                                                                                   n = normalize (crossproduct e1 e2)
-                                                                               in Intersection t (material i direction n)
+intersect (Triangle ps@(p0:p1:p2:[]) normals material) (Ray origin direction) | a > epsilon && a < epsilon = Nothing
+                                                                                 | u < 0 = Nothing
+                                                                                 | v < 0 || u + v > 1 = Nothing
+                                                                                 | t < epsilon = Nothing
+                                                                                 | otherwise = Just $ Intersection t (material i direction n)
     where e1 = Vector.subtract p1 p0
           e2 = Vector.subtract p2 p0
           q = crossproduct direction e2
@@ -65,6 +63,11 @@ intersect (Triangle (p0:p1:p2:[]) material) (Ray origin direction) | a > epsilon
           r = crossproduct s e1
           v = f * (dotproduct direction r)
           t = f * (dotproduct e2 r)
+          ns = map (maybe (normalize (crossproduct e1 e2)) id) normals
+          area a b c = (magnitude $ crossproduct (Vector.subtract b a) (Vector.subtract c a)) / 2
+          i = Vector.add origin (multiplyscalar t direction)
+          ws = [area p1 p2 i / area p0 p1 p2, area p2 p0 i / area p0 p1 p2, area p0 p1 i / area p0 p1 p2]
+          n = foldr1 Vector.add $ zipWith multiplyscalar ws ns
 intersect (Plane p n) (Ray o d) = Nothing
 intersect (Scene objects) ray = closest (map ((flip intersect) ray) objects)
                                       where closest [] = Nothing
@@ -77,9 +80,9 @@ intersect (TransformWrapper transform object) (Ray origin direction) = fmap (tra
           d' = Transform.applyInverse transform direction
 
 transformIntersection transform (Intersection t material) = Intersection t material'
-    where i' = Transform.apply transform $ Material.point material
-          d' = Transform.apply transform $ Material.direction material
-          n' = Transform.apply transform $ Material.normal material
+    where i' = Transform.apply transform False $ Material.point material
+          d' = Transform.apply transform False $ Material.direction material
+          n' = Transform.apply transform True $ Material.normal material
           material' = material { Material.point = i', Material.direction = d', Material.normal = n' }
 
 min' :: (Ord a) => Maybe a -> Maybe a -> Maybe a
@@ -91,7 +94,7 @@ min' (Just a) (Just b) = Just (Prelude.min a b)
 makeAABB :: Object -> AABB
 makeAABB (Sphere center radius _) = AABB (Vector.subtract center vr) (Vector.add center vr)
     where vr = Vector [radius, radius, radius]
-makeAABB (Triangle vertices _) = AABB (Vector $ foldl1 (zipWith Prelude.min) vs) (Vector $ foldl1 (zipWith Prelude.max) vs)
+makeAABB (Triangle vertices _ _) = AABB (Vector $ foldl1 (zipWith Prelude.min) vs) (Vector $ foldl1 (zipWith Prelude.max) vs)
     where vs = map elements vertices
 makeAABB (Plane _ _) = error "Cannot make AABB for unbounded object"
 makeAABB (Scene []) = error "Cannot make AABB for unbounded object"
