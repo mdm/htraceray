@@ -42,6 +42,11 @@ split g = (pureMT a, pureMT b)
     where (a, g') = randomWord64 g
           (b, _) = randomWord64 g'
 
+maybeAt :: [a] -> Int -> Maybe a
+maybeAt [] _ = Nothing
+maybeAt (x:xs) 0 = Just x
+maybeAt (x:xs) n = maybeAt xs (n - 1)
+
 -- foldlM :: (Foldable t, Monad m) => ((b -> (a -> (m b))) -> (b -> ((t a) -> (m b))))
 -- foldlM f z0 xs = (((foldr f') return) xs) z0
 -- where f' x k z = (((f z) x) >>= k)
