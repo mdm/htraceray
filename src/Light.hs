@@ -17,13 +17,13 @@ fromIntersection :: Maybe Intersection -> Maybe Material
 fromIntersection Nothing = Nothing
 fromIntersection (Just (Intersection _ material')) = Just material'
 
-shadeChunked :: Config -> Object -> [Ray] -> PureMT -> [Vector]
+shadeChunked :: Object a => Config -> a -> [Ray] -> PureMT -> [Vector]
 shadeChunked _ _ [] _ = []
 shadeChunked config object rays randoms = map shadeChunk chunks
       where chunks = chunksOf (samples config) rays
             shadeChunk chunk = average $ shadeAll config object chunk randoms
 
-shadeAll :: Config -> Object -> [Ray] -> PureMT -> [Vector]
+shadeAll :: Object a => Config -> a -> [Ray] -> PureMT -> [Vector]
 shadeAll _ object (ray:[]) randoms = [shaded]
       where shaded = shadeSingle 50 object ray randoms
 shadeAll config object (ray:rays) randoms = shaded:rest `using` parListChunk (chunkSize config) rpar
@@ -31,11 +31,11 @@ shadeAll config object (ray:rays) randoms = shaded:rest `using` parListChunk (ch
             shaded = shadeSingle 50 object ray randoms'
             rest = shadeAll config object rays randoms''
 
-shadeSingle :: Int-> Object -> Ray -> PureMT -> Vector
+shadeSingle :: Object a => Int-> a -> Ray -> PureMT -> Vector
 shadeSingle 0 _ _ _ = Vector [0, 0, 0]
 shadeSingle limit object ray randoms = shade limit object (fromIntersection $ intersect object ray) randoms
 
-shade :: Int -> Object -> Maybe Material -> PureMT -> Vector
+shade :: Object a=> Int -> a -> Maybe Material -> PureMT -> Vector
 shade _ _ Nothing randoms = Vector [1, 1, 1]
 shade limit object (Just (Diffuse a i _ n)) randoms = multiplyvector a shaded
     where target = Vector.add (Vector.add i n)
